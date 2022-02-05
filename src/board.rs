@@ -2,6 +2,7 @@ type Bitboard = [u64; 4];
 
 const LEFT_BOUND: u64 = 0x0004010040100401;
 const RIGHT_BOUND: u64 = 0x0802008020080200;
+const LOWER_BOUND: u64 = 0x00000000000003FF;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Mino {
@@ -98,6 +99,41 @@ impl Board {
         self.current.board[1] <<= 1;
         self.current.board[2] <<= 1;
         self.current.board[3] <<= 1;
+        true
+    }
+
+    pub fn move_down(&mut self) -> bool {
+        if self.current.board[0] > 0 {
+            if self.current.board[0] & LOWER_BOUND > 0 { return false; }
+            if self.current.board[0] >> 10 & self.field[0] > 0 { return false; }
+        }
+        if self.current.board[1] > 0 {
+            if self.current.board[1] << 50 & self.field[0] > 0 { return false; }
+            if self.current.board[1] >> 10 & self.field[1] > 0 { return false; }
+        }
+        if self.current.board[2] > 0 {
+            if self.current.board[2] << 50 & self.field[1] > 0 { return false; }
+            if self.current.board[2] >> 10 & self.field[2] > 0 { return false; }
+        }
+        if self.current.board[3] > 0 {
+            if self.current.board[3] << 50 & self.field[2] > 0 { return false; }
+            if self.current.board[3] >> 10 & self.field[3] > 0 { return false; }
+        }
+        if self.current.board[0] > 0 {
+            self.current.board[0] >>= 10;
+        }
+        if self.current.board[1] > 0 {
+            self.current.board[0] |= (self.current.board[1] & LOWER_BOUND) << 50;
+            self.current.board[1] >>= 10;
+        }
+        if self.current.board[2] > 0 {
+            self.current.board[1] |= (self.current.board[2] & LOWER_BOUND) << 50;
+            self.current.board[2] >>= 10;
+        }
+        if self.current.board[3] > 0 {
+            self.current.board[2] |= (self.current.board[3] & LOWER_BOUND) << 50;
+            self.current.board[3] >>= 10;
+        }
         true
     }
 }
