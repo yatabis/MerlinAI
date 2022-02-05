@@ -1,5 +1,8 @@
 type Bitboard = [u64; 4];
 
+const LEFT_BOUND: u64 = 0x0004010040100401;
+const RIGHT_BOUND: u64 = 0x0802008020080200;
+
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Mino {
     I,
@@ -73,3 +76,28 @@ impl Board {
             self.current.board[3] >>= 10;
         }
     }
+
+    pub fn move_left(&mut self) -> bool {
+        if self.current.board[0] & LEFT_BOUND > 0 { return false; }
+        if self.current.board[1] & LEFT_BOUND > 0 { return false; }
+        if self.current.board[2] & LEFT_BOUND > 0 { return false; }
+        if self.current.board[3] & LEFT_BOUND > 0 { return false; }
+        self.current.board[0] >>= 1;
+        self.current.board[1] >>= 1;
+        self.current.board[2] >>= 1;
+        self.current.board[3] >>= 1;
+        true
+    }
+
+    pub fn move_right(&mut self) -> bool {
+        if self.current.board[0] & RIGHT_BOUND > 0 { return false; }
+        if self.current.board[1] & RIGHT_BOUND > 0 { return false; }
+        if self.current.board[2] & RIGHT_BOUND > 0 { return false; }
+        if self.current.board[3] & RIGHT_BOUND > 0 { return false; }
+        self.current.board[0] <<= 1;
+        self.current.board[1] <<= 1;
+        self.current.board[2] <<= 1;
+        self.current.board[3] <<= 1;
+        true
+    }
+}
