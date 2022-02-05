@@ -136,4 +136,17 @@ impl Board {
         }
         true
     }
+
+    pub fn ground(&mut self) {
+        if self.current.mino == Mino::None { return; }
+        loop {
+            if !self.move_down() {
+                break;
+            }
+        }
+        self.field[0] |= self.current.board[0];
+        self.field[1] |= self.current.board[1];
+        self.field[2] |= self.current.board[2];
+        self.field[3] |= self.current.board[3];
+    }
 }
