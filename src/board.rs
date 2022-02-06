@@ -83,10 +83,22 @@ impl Board {
     }
 
     pub fn move_left(&mut self) -> bool {
-        if self.current.board[0] & LEFT_BOUND > 0 { return false; }
-        if self.current.board[1] & LEFT_BOUND > 0 { return false; }
-        if self.current.board[2] & LEFT_BOUND > 0 { return false; }
-        if self.current.board[3] & LEFT_BOUND > 0 { return false; }
+        if self.current.board[0] > 0 {
+            if self.current.board[0] & LEFT_BOUND > 0 { return false; }
+            if self.current.board[0] >> 1 & self.field[0] > 0 { return false; }
+        }
+        if self.current.board[1] > 0 {
+            if self.current.board[1] & LEFT_BOUND > 0 { return false; }
+            if self.current.board[1] >> 1 & self.field[1] > 0 { return false; }
+        }
+        if self.current.board[2] > 0 {
+            if self.current.board[2] & LEFT_BOUND > 0 { return false; }
+            if self.current.board[2] >> 1 & self.field[2] > 0 { return false; }
+        }
+        if self.current.board[3] > 0 {
+            if self.current.board[3] & LEFT_BOUND > 0 { return false; }
+            if self.current.board[3] >> 1 & self.field[3] > 0 { return false; }
+        }
         self.current.board[0] >>= 1;
         self.current.board[1] >>= 1;
         self.current.board[2] >>= 1;
@@ -96,10 +108,22 @@ impl Board {
     }
 
     pub fn move_right(&mut self) -> bool {
-        if self.current.board[0] & RIGHT_BOUND > 0 { return false; }
-        if self.current.board[1] & RIGHT_BOUND > 0 { return false; }
-        if self.current.board[2] & RIGHT_BOUND > 0 { return false; }
-        if self.current.board[3] & RIGHT_BOUND > 0 { return false; }
+        if self.current.board[0] > 0 {
+            if self.current.board[0] & RIGHT_BOUND > 0 { return false; }
+            if self.current.board[0] << 1 & self.field[0] > 0 { return false; }
+        }
+        if self.current.board[1] > 0 {
+            if self.current.board[1] & RIGHT_BOUND > 0 { return false; }
+            if self.current.board[1] << 1 & self.field[1] > 0 { return false; }
+        }
+        if self.current.board[2] > 0 {
+            if self.current.board[2] & RIGHT_BOUND > 0 { return false; }
+            if self.current.board[2] << 1 & self.field[2] > 0 { return false; }
+        }
+        if self.current.board[3] > 0 {
+            if self.current.board[3] & RIGHT_BOUND > 0 { return false; }
+            if self.current.board[3] << 1 & self.field[3] > 0 { return false; }
+        }
         self.current.board[0] <<= 1;
         self.current.board[1] <<= 1;
         self.current.board[2] <<= 1;
