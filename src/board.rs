@@ -16,15 +16,22 @@ pub enum Mino {
     None,
 }
 
-pub const MINO_LIST: [Mino; 7] = [Mino::I, Mino::O, Mino::S, Mino::Z, Mino::J, Mino::L, Mino::T];
+impl Mino {
+    const fn spawn(&self) -> u64 {
+        match self {
+            Mino::I => 0x0000000007800000,
+            Mino::O => 0x0000000C03000000,
+            Mino::S => 0x0000000C01800000,
+            Mino::Z => 0x0000000603000000,
+            Mino::J => 0x0000000203800000,
+            Mino::L => 0x0000000803800000,
+            Mino::T => 0x0000000403800000,
+            _ => 0,
+        }
+    }
+}
 
-const I_SPAWN: u64 = 0x0000000007800000;
-const O_SPAWN: u64 = 0x0000000C03000000;
-const S_SPAWN: u64 = 0x0000000C01800000;
-const Z_SPAWN: u64 = 0x0000000603000000;
-const J_SPAWN: u64 = 0x0000000203800000;
-const L_SPAWN: u64 = 0x0000000803800000;
-const T_SPAWN: u64 = 0x0000000403800000;
+pub const MINO_LIST: [Mino; 7] = [Mino::I, Mino::O, Mino::S, Mino::Z, Mino::J, Mino::L, Mino::T];
 
 enum Rotation {
     North,
@@ -63,18 +70,7 @@ impl Board {
             mino,
             position: if mino == Mino::I { 194 } else { 204 },
             rotation: Rotation::North,
-            board: [
-                0, 0, 0, match mino {
-                    Mino::I => I_SPAWN,
-                    Mino::O => O_SPAWN,
-                    Mino::S => S_SPAWN,
-                    Mino::Z => Z_SPAWN,
-                    Mino::J => J_SPAWN,
-                    Mino::L => L_SPAWN,
-                    Mino::T => T_SPAWN,
-                    Mino::None => 0,
-                }
-            ]
+            board: [0, 0, 0, mino.spawn()]
         };
         if self.current.board[3] >> 10 & self.field[3] == 0 {
             self.current.board[3] >>= 10;
