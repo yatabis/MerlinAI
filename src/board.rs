@@ -35,6 +35,7 @@ enum Rotation {
 
 struct MinoInfo {
     mino: Mino,
+    position: i16,
     rotation: Rotation,
     board: Bitboard,
 }
@@ -50,6 +51,7 @@ impl Board {
             field: [0; 4],
             current: MinoInfo {
                 mino: Mino::None,
+                position: 0,
                 rotation: Rotation::North,
                 board: [0; 4],
             }
@@ -59,6 +61,7 @@ impl Board {
     pub fn spawn(&mut self, mino: Mino) {
         self.current = MinoInfo {
             mino,
+            position: if mino == Mino::I { 194 } else { 204 },
             rotation: Rotation::North,
             board: [
                 0, 0, 0, match mino {
@@ -75,6 +78,7 @@ impl Board {
         };
         if self.current.board[3] >> 10 & self.field[3] == 0 {
             self.current.board[3] >>= 10;
+            self.current.position -= 10;
         }
     }
 
@@ -87,6 +91,7 @@ impl Board {
         self.current.board[1] >>= 1;
         self.current.board[2] >>= 1;
         self.current.board[3] >>= 1;
+        self.current.position -= 1;
         true
     }
 
@@ -99,6 +104,7 @@ impl Board {
         self.current.board[1] <<= 1;
         self.current.board[2] <<= 1;
         self.current.board[3] <<= 1;
+        self.current.position += 1;
         true
     }
 
@@ -134,6 +140,7 @@ impl Board {
             self.current.board[2] |= (self.current.board[3] & LOWER_BOUND) << 50;
             self.current.board[3] >>= 10;
         }
+        self.current.position -= 10;
         true
     }
 
