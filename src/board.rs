@@ -80,6 +80,7 @@ impl Mino {
 
 pub const MINO_LIST: [Mino; 7] = [Mino::I, Mino::O, Mino::S, Mino::Z, Mino::J, Mino::L, Mino::T];
 
+#[derive(Eq, PartialEq)]
 enum Rotation {
     North,
     East,
@@ -103,6 +104,53 @@ impl Rotation {
             Rotation::East => Rotation::North,
             Rotation::South => Rotation::East,
             Rotation::West => Rotation::South,
+        }
+    }
+
+    fn srs(&self, next: Rotation, mino: Mino) -> [i16; 5] {
+        if mino == Mino::I {
+            match self {
+                Rotation::North => {
+                    match next {
+                        Rotation::East => [-2, 3, -13, 33, -21],
+                        Rotation::West => [-1, 3, 17, -27, 8],
+                        _ => [0, 0, 0, 0, 0],
+                    }
+                },
+                Rotation::East => {
+                    match next {
+                        Rotation::North => [2, -3, 13, -33, 21],
+                        Rotation::South => [-1, 3, 17, -27, 8],
+                        _ => [0, 0, 0, 0, 0],
+                    }
+                },
+                Rotation::South => {
+                    match next {
+                        Rotation::East => [1, -3, -17, 27, -8],
+                        Rotation::West => [2, -3, 13, -33, 21],
+                        _ => [0, 0, 0, 0, 0],
+                    }
+                },
+                Rotation::West => {
+                    match next {
+                        Rotation::North => [1, -3, -17, 27, -8],
+                        Rotation::South => [-2, 3, -13, 33, -21],
+                        _ => [0, 0, 0, 0, 0],
+                    }
+                },
+            }
+        } else {
+            match self {
+                Rotation::East => [1, -10, 29, 1, -21],
+                Rotation::West => [-1, -10, 31, -1, -19],
+                _ => {
+                    if next == Rotation::East {
+                        [-1, 10, -29, -1, 21]
+                    } else {
+                        [1, 10, -31, 1, 19]
+                    }
+                }
+            }
         }
     }
 }
@@ -239,26 +287,19 @@ impl Board {
             Rotation::South => self.current.mino.west(),
             Rotation::West => self.current.mino.north(),
         };
-        let mut rotated = [0; 4];
-        if self.current.position < 11 {
-            rotated[0] = mino >> 11 - self.current.position;
-        } else if self.current.position < 71 {
-            rotated[0] = mino << self.current.position - 11;
-            rotated[1] = mino >> 71 - self.current.position;
-        } else if self.current.position < 131 {
-            rotated[1] = mino << self.current.position - 71;
-            rotated[2] = mino >> 131 - self.current.position;
-        } else if self.current.position < 191 {
-            rotated[2] = mino << self.current.position - 131;
-            rotated[3] = mino >> 191 - self.current.position;
-        } else {
-            rotated[3] = mino << self.current.position - 191;
-        }
-        if self.validate(&rotated) {
-            self.current.board = rotated;
-            self.current.rotation = self.current.rotation.clockwise();
-            return true;
-        }
+        let srs = self.current.rotation.srs(self.current.rotation.clockwise(), self.current.mino);
+        self.current.rotation = self.current.rotation.clockwise();
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[0];
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[1];
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[2];
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[3];
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[4];
+        self.current.rotation = self.current.rotation.counterclockwise();
         false
     }
 
@@ -270,6 +311,24 @@ impl Board {
             Rotation::South => self.current.mino.east(),
             Rotation::West => self.current.mino.south(),
         };
+        let srs = self.current.rotation.srs(self.current.rotation.counterclockwise(), self.current.mino);
+        self.current.rotation = self.current.rotation.counterclockwise();
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[0];
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[1];
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[2];
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[3];
+        if self.set_rotation(mino) { return true; }
+        self.current.position += srs[4];
+        self.current.rotation = self.current.rotation.clockwise();
+        false
+    }
+
+    fn set_rotation(&mut self, mino: u64) -> bool {
+        if self.current.position < 10 { return false; }
         let mut rotated = [0; 4];
         if self.current.position < 11 {
             rotated[0] = mino >> 11 - self.current.position;
@@ -285,25 +344,16 @@ impl Board {
         } else {
             rotated[3] = mino << self.current.position - 191;
         }
-        if self.validate(&rotated) {
-            self.current.board = rotated;
-            self.current.rotation = self.current.rotation.counterclockwise();
-            return true;
-        }
-        false
-    }
-
-    fn validate(&self, test: &Bitboard) -> bool {
-        if self.current.position < 11 { return false; }
-        if (test[0] | test[1] | test[2] | test[3]) & LEFT_BOUND > 0
-            && (test[0] | test[1] | test[2] | test[3]) & RIGHT_BOUND > 0 {
+        if (rotated[0] | rotated[1] | rotated[2] | rotated[3]) & LEFT_BOUND > 0
+            && (rotated[0] | rotated[1] | rotated[2] | rotated[3]) & RIGHT_BOUND > 0 {
             return false;
         }
-        if test[0] & self.field[0] > 0 { return false; }
-        if test[1] & self.field[1] > 0 { return false; }
-        if test[2] & self.field[2] > 0 { return false; }
-        if test[3] & self.field[3] > 0 { return false; }
-        true
+        if rotated[0] & self.field[0] > 0 { return false; }
+        if rotated[1] & self.field[1] > 0 { return false; }
+        if rotated[2] & self.field[2] > 0 { return false; }
+        if rotated[3] & self.field[3] > 0 { return false; }
+        self.current.board = rotated;
+        return true;
     }
 
     pub fn ground(&mut self) {
