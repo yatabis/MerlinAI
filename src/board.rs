@@ -368,4 +368,27 @@ impl Board {
         self.field[2] |= self.current.board[2];
         self.field[3] |= self.current.board[3];
     }
+
+    pub fn clear_lines(&mut self) -> u32 {
+        let mut clear = 0;
+        let mut field = [0; 4];
+        let mut line = 0;
+        for i in 0..4 {
+            for j in 0..6 {
+                let current = self.field[i] >> 10 * j & LOWER_BOUND;
+                if current == 0 {
+                    self.field = field;
+                    return clear;
+                }
+                if current == LOWER_BOUND {
+                    clear += 1;
+                } else {
+                    field[line / 60] |= current << line % 60;
+                    line += 10;
+                }
+            }
+        }
+        self.field = field;
+        clear
+    }
 }
