@@ -30,7 +30,7 @@ impl Mino {
         }
     }
 
-    const fn north(&self) -> u64 {
+    pub const fn north(&self) -> u64 {
         match self {
             Mino::I => 0x0000000000F00000,
             Mino::S => 0x0000000000600C00,
@@ -43,7 +43,7 @@ impl Mino {
         }
     }
 
-    const fn east(&self) -> u64 {
+    pub const fn east(&self) -> u64 {
         match self {
             Mino::I => 0x0000000100401004,
             Mino::S => 0x0000000000201804,
@@ -56,7 +56,7 @@ impl Mino {
         }
     }
 
-    const fn south(&self) -> u64 {
+    pub const fn south(&self) -> u64 {
         match self {
             Mino::I => 0x0000000000003C00,
             Mino::S => 0x0000000000001803,
@@ -68,7 +68,7 @@ impl Mino {
             Mino::None => 0,
         }
     }
-    const fn west(&self) -> u64 {
+    pub const fn west(&self) -> u64 {
         match self {
             Mino::I => 0x0000000080200802,
             Mino::S => 0x0000000000100C02,
@@ -84,8 +84,8 @@ impl Mino {
 
 pub const MINO_LIST: [Mino; 7] = [Mino::I, Mino::O, Mino::S, Mino::Z, Mino::J, Mino::L, Mino::T];
 
-#[derive(Eq, PartialEq)]
-enum Rotation {
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum Rotation {
     North,
     East,
     South,
@@ -159,16 +159,17 @@ impl Rotation {
     }
 }
 
-struct MinoInfo {
-    mino: Mino,
-    position: i16,
-    rotation: Rotation,
-    board: Bitboard,
+#[derive(Copy, Clone)]
+pub struct MinoInfo {
+    pub mino: Mino,
+    pub position: i16,
+    pub rotation: Rotation,
+    pub board: Bitboard,
 }
 
 pub struct Board {
-    field: Bitboard,
-    current: MinoInfo,
+    pub field: Bitboard,
+    pub current: MinoInfo,
 }
 
 impl Board {
