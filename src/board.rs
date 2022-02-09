@@ -333,7 +333,7 @@ impl Board {
     }
 
     fn set_rotation(&mut self, mino: u64) -> bool {
-        if self.current.position < 10 { return false; }
+        if self.current.rotation != Rotation::North && self.current.position < 10 { return false; }
         let mut rotated = [0; 4];
         if self.current.position < 11 {
             rotated[0] = mino >> 11 - self.current.position;
