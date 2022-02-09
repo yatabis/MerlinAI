@@ -48,7 +48,7 @@ fn main() {
     for &i in &m[0..6] {
         game.new_next(MINO_LIST[i]);
     }
-    game.hard_drop();
+    game.board.spawn(game.next.pop_front().unwrap());
 
     // イベントループ
     loop {
