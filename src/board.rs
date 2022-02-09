@@ -361,8 +361,8 @@ impl Board {
         return true;
     }
 
-    pub fn ground(&mut self) {
-        if self.current.mino == Mino::None { return; }
+    pub fn ground(&mut self) -> MinoInfo {
+        if self.current.mino == Mino::None { return MinoInfo { mino: Mino::None, position: 0, rotation: Rotation::North, board: [0; 4] }; }
         loop {
             if !self.move_down() {
                 break;
@@ -372,6 +372,7 @@ impl Board {
         self.field[1] |= self.current.board[1];
         self.field[2] |= self.current.board[2];
         self.field[3] |= self.current.board[3];
+        self.current.clone()
     }
 
     pub fn clear_lines(&mut self) -> u32 {
