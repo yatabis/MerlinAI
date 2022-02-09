@@ -1,12 +1,12 @@
 use std::collections::VecDeque;
 
-use crate::board::{Board, Mino, MINO_LIST};
+use crate::board::{Board, Mino, MinoInfo};
 
 pub struct Game {
-    board: Board,
-    hold: Mino,
-    next: VecDeque<Mino>,
-    bag: [bool; 7],
+    pub board: Board,
+    pub hold: Mino,
+    pub next: VecDeque<Mino>,
+    pub bag: [bool; 7],
 }
 
 impl Game {
@@ -16,6 +16,52 @@ impl Game {
             hold: Mino::None,
             next: VecDeque::new(),
             bag: [true; 7],
+        }
+    }
+
+    pub fn new_next(&mut self, mino: Mino) {
+        self.next.push_back(mino);
+        self.bag[mino as usize] = false;
+        if !self.bag.contains(&true) {
+            self.bag = [true; 7];
+        }
+    }
+
+    pub fn move_left(&mut self) {
+        self.board.move_left();
+    }
+
+    pub fn move_right(&mut self) {
+        self.board.move_right();
+    }
+
+    pub fn rotate_clockwise(&mut self) {
+        self.board.rotate_clockwise();
+    }
+
+    pub fn rotate_counterclockwise(&mut self) {
+        self.board.rotate_counterclockwise();
+    }
+
+    pub fn soft_drop(&mut self) {
+        self.board.move_down();
+    }
+
+    pub fn hard_drop(&mut self) -> MinoInfo {
+        let ground_info = self.board.ground();
+        self.board.clear_lines();
+        self.board.spawn(self.next.pop_front().unwrap());
+        ground_info
+    }
+
+    pub fn hold(&mut self) {
+        if self.hold == Mino::None {
+            self.hold = self.board.current.mino;
+            self.board.spawn(self.next.pop_front().unwrap());
+        } else {
+            let hold_mino = self.hold;
+            self.hold = self.board.current.mino;
+            self.board.spawn(hold_mino);
         }
     }
 }
