@@ -1,7 +1,13 @@
 use std::{thread, time};
+use std::fs::File;
 use std::io::Write;
+use rand::Rng;
+use rand::seq::SliceRandom;
 
+use merlin::board::{Mino, MINO_LIST};
 use merlin::key::Key;
+use merlin::game::Game;
+use merlin::viewer::Viewer;
 
 fn main() {
     // キー入力を受け付ける
@@ -30,10 +36,21 @@ fn main() {
     }
     let mut buf: [libc::c_char; 1] = [0; 1];
     let ptr = &mut buf;
+
     let mut display = Key::None;
     let mut counter = 0;
 
-    // メインループ
+    let mut game = Game::new();
+    let mut viewer = Viewer::new();
+    let mut rng = rand::thread_rng();
+    let mut m: [usize; 7] = [0, 1, 2, 3, 4, 5, 6];
+    m.shuffle(&mut rng);
+    for &i in &m[0..6] {
+        game.new_next(MINO_LIST[i]);
+    }
+    game.hard_drop();
+
+    // イベントループ
     loop {
         // 60fps
         thread::sleep(time::Duration::from_millis(16));
@@ -63,6 +80,39 @@ fn main() {
             break;
         }
 
+        // メインの処理
+        match key {
+            Key::Left => game.move_left(),
+            Key::Right => game.move_right(),
+            Key::Clockwise => game.rotate_clockwise(),
+            Key::Counterclockwise => game.rotate_counterclockwise(),
+            Key::SoftDrop => game.soft_drop(),
+            Key::HardDrop => {
+                let ground_info = game.hard_drop();
+                let mut r = rng.gen_range(0..7);
+                while !game.bag[r] {
+                    r = rng.gen_range(0..7);
+                }
+                game.new_next(MINO_LIST[r]);
+                viewer.ground(&ground_info);
+                viewer.clear_lines();
+            },
+            Key::Hold => {
+                if game.hold == Mino::None {
+                    game.hold();
+                    let mut r = rng.gen_range(0..7);
+                    while !game.bag[r] {
+                        r = rng.gen_range(0..7);
+                    }
+                    game.new_next(MINO_LIST[r]);
+                } else {
+                    game.hold();
+                }
+            },
+            _ => {},
+        }
+        viewer.update(&game);
+        viewer.write(&game);
     }
 
     // キー入力の受付を終了
@@ -70,4 +120,11 @@ fn main() {
     unsafe {
         libc::tcsetattr(0, libc::TCSANOW, &saved_termattr);
     }
+
+    // マップファイルのクリア
+    let mut f = File::create("map.csv").unwrap();
+    for _ in 0..20 {
+        write!(f, "0,0,0,0,0,0,0,0,0,0\n").unwrap();
+    }
+    write!(f, "0,0,0,0,0,0").unwrap();
 }
