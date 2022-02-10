@@ -10,6 +10,10 @@ use merlin::game::Game;
 use merlin::viewer::Viewer;
 
 fn main() {
+    test()
+}
+
+fn test() {
     // キー入力を受け付ける
     let mut saved_termattr = libc::termios {
         c_iflag: 0,
@@ -34,6 +38,29 @@ fn main() {
     unsafe {
         libc::fcntl(0, libc::F_SETFL, libc::O_NONBLOCK);
     }
+
+    let mut retry = true;
+    while retry {
+        retry = new_game();
+    }
+
+    // キー入力の受付を終了
+    // これを行わないとプログラム終了後の挙動に支障をきたすので必ず実行されるよう注意する
+    unsafe {
+        libc::tcsetattr(0, libc::TCSANOW, &saved_termattr);
+    }
+
+    // マップファイルのクリア
+    let mut f = File::create("map.csv").unwrap();
+    for _ in 0..20 {
+        write!(f, "0,0,0,0,0,0,0,0,0,0\n").unwrap();
+    }
+    write!(f, "0,0,0,0,0,0").unwrap();
+}
+
+fn new_game() -> bool {
+    let mut retry = false;
+
     let mut buf: [libc::c_char; 1] = [0; 1];
     let ptr = &mut buf;
 
@@ -69,13 +96,13 @@ fn main() {
             counter = 0;
             display = Key::None;
         }
-        print!("\r\x1b[K");
-        if display != Key::None {
-            print!("{:?}", display);
-        }
-        std::io::stdout().flush().unwrap();
 
-        // 終了条件（ `q` キーの押下）
+        // `r` キー押下でリトライ
+        if key == Key::Retry {
+            retry = true;
+            break;
+        }
+        // `q` キー押下で終了
         if key == Key::Exit {
             break;
         }
@@ -114,17 +141,5 @@ fn main() {
         viewer.update(&game);
         viewer.write(&game);
     }
-
-    // キー入力の受付を終了
-    // これを行わないとプログラム終了後の挙動に支障をきたすので必ず実行されるよう注意する
-    unsafe {
-        libc::tcsetattr(0, libc::TCSANOW, &saved_termattr);
-    }
-
-    // マップファイルのクリア
-    let mut f = File::create("map.csv").unwrap();
-    for _ in 0..20 {
-        write!(f, "0,0,0,0,0,0,0,0,0,0\n").unwrap();
-    }
-    write!(f, "0,0,0,0,0,0").unwrap();
+    retry
 }
