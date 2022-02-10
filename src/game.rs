@@ -54,7 +54,9 @@ impl Game {
     pub fn hard_drop(&mut self) -> MinoInfo {
         let ground_info = self.board.ground();
         let clears = self.board.clear_lines();
-        self.back_to_back = clears == 4 || self.board.t_spin != TSpin::None;
+        if clears > 0 {
+            self.back_to_back = clears == 4 || self.board.t_spin != TSpin::None;
+        }
         if clears > 0 {
             self.ren += 1;
         } else {
