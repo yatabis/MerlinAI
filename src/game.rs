@@ -8,6 +8,7 @@ pub struct Game {
     pub next: VecDeque<Mino>,
     pub bag: [bool; 7],
     pub back_to_back: bool,
+    pub ren: i32
 }
 
 impl Game {
@@ -18,6 +19,7 @@ impl Game {
             next: VecDeque::new(),
             bag: [true; 7],
             back_to_back: false,
+            ren: 0,
         }
     }
 
@@ -53,6 +55,11 @@ impl Game {
         let ground_info = self.board.ground();
         let clears = self.board.clear_lines();
         self.back_to_back = clears == 4 || self.board.t_spin != TSpin::None;
+        if clears > 0 {
+            self.ren += 1;
+        } else {
+            self.ren = 0;
+        }
         self.board.spawn(self.next.pop_front().unwrap());
         ground_info
     }
