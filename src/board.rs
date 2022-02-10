@@ -3,6 +3,7 @@ type Bitboard = [u64; 4];
 const LEFT_BOUND: u64 = 0x0004010040100401;
 const RIGHT_BOUND: u64 = 0x0802008020080200;
 const LOWER_BOUND: u64 = 0x00000000000003FF;
+const BOARD_MASK: u64 = 0x0FFFFFFFFFFFFFFF;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Mino {
@@ -167,9 +168,17 @@ pub struct MinoInfo {
     pub board: Bitboard,
 }
 
+#[derive(Eq, PartialEq)]
+pub enum TSpin {
+    Normal,
+    Mini,
+    None,
+}
+
 pub struct Board {
     pub field: Bitboard,
     pub current: MinoInfo,
+    pub t_spin: TSpin,
 }
 
 impl Board {
@@ -181,7 +190,8 @@ impl Board {
                 position: 0,
                 rotation: Rotation::North,
                 board: [0; 4],
-            }
+            },
+            t_spin: TSpin::None,
         }
     }
 
@@ -196,6 +206,7 @@ impl Board {
             self.current.board[3] >>= 10;
             self.current.position -= 10;
         }
+        self.t_spin = TSpin::None;
     }
 
     pub fn move_left(&mut self) -> bool {
@@ -220,6 +231,7 @@ impl Board {
         self.current.board[2] >>= 1;
         self.current.board[3] >>= 1;
         self.current.position -= 1;
+        self.t_spin = TSpin::None;
         true
     }
 
@@ -245,6 +257,7 @@ impl Board {
         self.current.board[2] <<= 1;
         self.current.board[3] <<= 1;
         self.current.position += 1;
+        self.t_spin = TSpin::None;
         true
     }
 
@@ -281,6 +294,7 @@ impl Board {
             self.current.board[3] >>= 10;
         }
         self.current.position -= 10;
+        self.t_spin = TSpin::None;
         true
     }
 
@@ -294,15 +308,15 @@ impl Board {
         };
         let srs = self.current.rotation.srs(self.current.rotation.clockwise(), self.current.mino);
         self.current.rotation = self.current.rotation.clockwise();
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 0) { return true; }
         self.current.position += srs[0];
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 1) { return true; }
         self.current.position += srs[1];
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 2) { return true; }
         self.current.position += srs[2];
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 3) { return true; }
         self.current.position += srs[3];
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 4) { return true; }
         self.current.position += srs[4];
         self.current.rotation = self.current.rotation.counterclockwise();
         false
@@ -318,21 +332,21 @@ impl Board {
         };
         let srs = self.current.rotation.srs(self.current.rotation.counterclockwise(), self.current.mino);
         self.current.rotation = self.current.rotation.counterclockwise();
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 0) { return true; }
         self.current.position += srs[0];
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 1) { return true; }
         self.current.position += srs[1];
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 2) { return true; }
         self.current.position += srs[2];
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 3) { return true; }
         self.current.position += srs[3];
-        if self.set_rotation(mino) { return true; }
+        if self.set_rotation(mino, 4) { return true; }
         self.current.position += srs[4];
         self.current.rotation = self.current.rotation.clockwise();
         false
     }
 
-    fn set_rotation(&mut self, mino: u64) -> bool {
+    fn set_rotation(&mut self, mino: u64, srs_index: usize) -> bool {
         if self.current.rotation != Rotation::North && self.current.position < 10 { return false; }
         let mut rotated = [0; 4];
         if self.current.position < 11 {
@@ -358,7 +372,88 @@ impl Board {
         if rotated[2] & self.field[2] > 0 { return false; }
         if rotated[3] & self.field[3] > 0 { return false; }
         self.current.board = rotated;
+        self.t_spin_check(srs_index);
         return true;
+    }
+
+    fn t_spin_check(&mut self, srs_index: usize) {
+        if self.current.mino != Mino::T { return; }
+        let normal = 0x0000000000500005;
+        let mini = match self.current.rotation {
+            Rotation::North => 0x0000000000000005,
+            Rotation::East => 0x0000000000100001,
+            Rotation::South => 0x0000000000500000,
+            Rotation::West => 0x0000000000400004,
+        };
+        let mut normal_check = [0u64; 4];
+        let mut mini_check = [0u64; 4];
+        if self.current.position < 11 {
+            normal_check[0] = normal >> 11 - self.current.position;
+            mini_check[0] = mini >> 11 - self.current.position;
+        } else if self.current.position < 71 {
+            normal_check[0] = normal << self.current.position - 11;
+            normal_check[1] = normal >> 71 - self.current.position;
+            mini_check[0] = mini << self.current.position - 11;
+            mini_check[1] = mini >> 71 - self.current.position;
+        } else if self.current.position < 131 {
+            normal_check[1] = normal << self.current.position - 71;
+            normal_check[2] = normal >> 131 - self.current.position;
+            mini_check[1] = mini << self.current.position - 71;
+            mini_check[2] = mini >> 131 - self.current.position;
+        } else if self.current.position < 191 {
+            normal_check[2] = normal << self.current.position - 131;
+            normal_check[3] = normal >> 191 - self.current.position;
+            mini_check[2] = mini << self.current.position - 131;
+            mini_check[3] = mini >> 191 - self.current.position;
+        } else {
+            normal_check[3] = normal << self.current.position - 191;
+            mini_check[3] = mini << self.current.position - 191;
+        }
+        normal_check[0] &= BOARD_MASK;
+        normal_check[1] &= BOARD_MASK;
+        normal_check[2] &= BOARD_MASK;
+        normal_check[3] &= BOARD_MASK;
+        mini_check[0] &= BOARD_MASK;
+        mini_check[1] &= BOARD_MASK;
+        mini_check[2] &= BOARD_MASK;
+        mini_check[3] &= BOARD_MASK;
+        if self.current.position < 10 {
+            if (normal_check[0] & self.field[0]).count_ones() == 1 {
+                self.t_spin = TSpin::Mini;
+            }
+        } else if self.current.position % 10 == 0 {
+            let count = (normal_check[0] & self.field[0] & !RIGHT_BOUND).count_ones()
+                + (normal_check[1] & self.field[1] & !RIGHT_BOUND).count_ones()
+                + (normal_check[2] & self.field[2] & !RIGHT_BOUND).count_ones()
+                + (normal_check[3] & self.field[3] & !RIGHT_BOUND).count_ones();
+            self.t_spin = match count {
+                1 => if srs_index == 4 { TSpin::Normal } else { TSpin::Mini },
+                2 => TSpin::Normal,
+                _ => TSpin::None,
+            }
+        } else if self.current.position % 10 == 9 {
+            let count = (normal_check[0] & self.field[0] & !LEFT_BOUND).count_ones()
+                + (normal_check[1] & self.field[1] & !LEFT_BOUND).count_ones()
+                + (normal_check[2] & self.field[2] & !LEFT_BOUND).count_ones()
+                + (normal_check[3] & self.field[3] & !LEFT_BOUND).count_ones();
+            self.t_spin = match count {
+                1 => if srs_index == 4 { TSpin::Normal } else { TSpin::Mini },
+                2 => TSpin::Normal,
+                _ => TSpin::None,
+            }
+        } else {
+            let normal_count = (normal_check[0] & self.field[0]).count_ones()
+                + (normal_check[1] & self.field[1]).count_ones()
+                + (normal_check[2] & self.field[2]).count_ones()
+                + (normal_check[3] & self.field[3]).count_ones();
+            let mini_count = (mini_check[0] & self.field[0]).count_ones()
+                + (mini_check[1] & self.field[1]).count_ones()
+                + (mini_check[2] & self.field[2]).count_ones()
+                + (mini_check[3] & self.field[3]).count_ones();
+            if normal_count >= 3 {
+                self.t_spin = if mini_count < 2 || srs_index == 4 { TSpin::Normal } else { TSpin::Mini }
+            }
+        }
     }
 
     pub fn ground(&mut self) -> MinoInfo {
