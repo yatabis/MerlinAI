@@ -1,12 +1,13 @@
 use std::collections::VecDeque;
 
-use crate::board::{Board, Mino, MinoInfo};
+use crate::board::{Board, Mino, MinoInfo, TSpin};
 
 pub struct Game {
     pub board: Board,
     pub hold: Mino,
     pub next: VecDeque<Mino>,
     pub bag: [bool; 7],
+    pub back_to_back: bool,
 }
 
 impl Game {
@@ -16,6 +17,7 @@ impl Game {
             hold: Mino::None,
             next: VecDeque::new(),
             bag: [true; 7],
+            back_to_back: false,
         }
     }
 
@@ -49,7 +51,8 @@ impl Game {
 
     pub fn hard_drop(&mut self) -> MinoInfo {
         let ground_info = self.board.ground();
-        self.board.clear_lines();
+        let clears = self.board.clear_lines();
+        self.back_to_back = clears == 4 || self.board.t_spin != TSpin::None;
         self.board.spawn(self.next.pop_front().unwrap());
         ground_info
     }
