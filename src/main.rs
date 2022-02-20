@@ -52,7 +52,7 @@ fn test() {
 
     // マップファイルのクリア
     let mut f = File::create("map.csv").unwrap();
-    for _ in 0..20 {
+    for _ in 0..21 {
         write!(f, "0,0,0,0,0,0,0,0,0,0\n").unwrap();
     }
     write!(f, "0,0,0,0,0,0").unwrap();

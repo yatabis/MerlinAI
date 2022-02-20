@@ -492,4 +492,17 @@ impl Board {
         self.field = field;
         clear
     }
+
+    pub fn ghost(&mut self) -> Bitboard {
+        if self.current.mino == Mino::None { return [0; 4]; }
+        let current = self.current;
+        loop {
+            if !self.move_down() {
+                break;
+            }
+        }
+        let ghost = self.current.board;
+        self.current = current;
+        ghost
+    }
 }

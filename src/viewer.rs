@@ -8,6 +8,7 @@ pub struct Viewer {
     mino: Mino,
     field: [u8; 240],
     current: [u8; 240],
+    ghost: [u8; 240],
 }
 
 impl Viewer {
@@ -16,13 +17,16 @@ impl Viewer {
             mino: Mino::None,
             field: [0; 240],
             current: [0; 240],
+            ghost: [0; 240],
         }
     }
 
     pub fn update(&mut self, game: &mut Game) {
         self.mino = game.board.current.mino;
+        let ghost = game.board.ghost();
         for i in 0..240 {
             self.current[i] = if game.board.current.board[i / 60] >> i % 60 & 1 > 0 { self.mino as u8 + 1 } else { 0 };
+            self.ghost[i] = if ghost[i / 60] >> i % 60 & 1 > 0 { self.mino as u8 + 8 } else { 0 };
         }
     }
     
@@ -50,10 +54,12 @@ impl Viewer {
 
     pub fn write(&mut self, game: &Game) {
         let mut map = String::new();
-        for i in (0..20).rev() {
+        for i in (0..21).rev() {
             let mut line = [0; 10];
             for j in 0..10 {
-                line[j] = self.field[i * 10 + j] | self.current[i * 10 + j];
+                line[j] = self.current[i * 10 + j];
+                if line[j] == 0 { line[j] = self.ghost[i * 10 + j]; }
+                if line[j] == 0 { line[j] = self.field[i * 10 + j]; }
             }
             map += &(line.map(|cell| cell.to_string() ).join(",") + "\n");
         }
