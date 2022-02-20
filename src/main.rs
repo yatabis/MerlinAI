@@ -59,6 +59,7 @@ fn test() {
 }
 
 fn new_game() -> bool {
+    let mut game_over = false;
     let mut retry = false;
 
     let mut buf: [libc::c_char; 1] = [0; 1];
@@ -108,38 +109,41 @@ fn new_game() -> bool {
         }
 
         // メインの処理
-        match key {
-            Key::Left => game.move_left(),
-            Key::Right => game.move_right(),
-            Key::Clockwise => game.rotate_clockwise(),
-            Key::Counterclockwise => game.rotate_counterclockwise(),
-            Key::SoftDrop => game.soft_drop(),
-            Key::HardDrop => {
-                let ground_info = game.hard_drop();
-                let mut r = rng.gen_range(0..7);
-                while !game.bag[r] {
-                    r = rng.gen_range(0..7);
-                }
-                game.new_next(MINO_LIST[r]);
-                viewer.ground(&ground_info);
-                viewer.clear_lines();
-            },
-            Key::Hold => {
-                if game.hold == Mino::None {
-                    game.hold();
+        if !game_over {
+            match key {
+                Key::Left => game.move_left(),
+                Key::Right => game.move_right(),
+                Key::Clockwise => game.rotate_clockwise(),
+                Key::Counterclockwise => game.rotate_counterclockwise(),
+                Key::SoftDrop => game.soft_drop(),
+                Key::HardDrop => {
+                    let grounded = game.hard_drop();
                     let mut r = rng.gen_range(0..7);
                     while !game.bag[r] {
                         r = rng.gen_range(0..7);
                     }
                     game.new_next(MINO_LIST[r]);
-                } else {
-                    game.hold();
-                }
-            },
-            _ => {},
+                    viewer.ground(grounded);
+                    viewer.clear_lines();
+                    if game.game_over(grounded) { game_over = true; }
+                },
+                Key::Hold => {
+                    if game.hold == Mino::None {
+                        game.hold();
+                        let mut r = rng.gen_range(0..7);
+                        while !game.bag[r] {
+                            r = rng.gen_range(0..7);
+                        }
+                        game.new_next(MINO_LIST[r]);
+                    } else {
+                        game.hold();
+                    }
+                },
+                _ => {},
+            }
+            viewer.update(&mut game);
+            viewer.write(&game);
         }
-        viewer.update(&game);
-        viewer.write(&game);
     }
     retry
 }

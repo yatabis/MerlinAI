@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::board::{Board, Mino, MinoInfo, TSpin};
+use crate::board::{Bitboard, Board, Mino, TSpin};
 
 const PERFECT_CLEAR: i32 = 10;
 const DOUBLE: i32 = 1;
@@ -60,8 +60,8 @@ impl Game {
         self.board.move_down();
     }
 
-    pub fn hard_drop(&mut self) -> MinoInfo {
-        let ground_info = self.board.ground();
+    pub fn hard_drop(&mut self) -> Bitboard {
+        let grounded = self.board.ground();
         let clears = self.board.clear_lines();
         if clears == 0 {
             self.ren = 0;
@@ -75,7 +75,7 @@ impl Game {
             self.ren += 1;
         }
         self.board.spawn(self.next.pop_front().unwrap());
-        ground_info
+        grounded
     }
 
     fn calc_attacks(&mut self, clears: u32) -> i32 {
@@ -133,5 +133,16 @@ impl Game {
             self.hold = self.board.current.mino;
             self.board.spawn(hold_mino);
         }
+    }
+
+    pub fn game_over(&self, grounded: Bitboard) -> bool {
+        if self.board.current.board[3] & self.board.field[3] > 0 {
+            return true;
+        }
+        if grounded[0] > 0 { return false; }
+        if grounded[1] > 0 { return false; }
+        if grounded[2] > 0 { return false; }
+        if grounded[3] & 0x00000000000FFFFF > 0 { return false; }
+        true
     }
 }

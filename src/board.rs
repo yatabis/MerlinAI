@@ -1,4 +1,4 @@
-type Bitboard = [u64; 4];
+pub type Bitboard = [u64; 4];
 
 const LEFT_BOUND: u64 = 0x0004010040100401;
 const RIGHT_BOUND: u64 = 0x0802008020080200;
@@ -456,8 +456,8 @@ impl Board {
         }
     }
 
-    pub fn ground(&mut self) -> MinoInfo {
-        if self.current.mino == Mino::None { return MinoInfo { mino: Mino::None, position: 0, rotation: Rotation::North, board: [0; 4] }; }
+    pub fn ground(&mut self) -> Bitboard {
+        if self.current.mino == Mino::None { return [0; 4]; }
         loop {
             if !self.move_down() {
                 break;
@@ -467,7 +467,7 @@ impl Board {
         self.field[1] |= self.current.board[1];
         self.field[2] |= self.current.board[2];
         self.field[3] |= self.current.board[3];
-        self.current.clone()
+        self.current.board.clone()
     }
 
     pub fn clear_lines(&mut self) -> u32 {
