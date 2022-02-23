@@ -110,7 +110,7 @@ impl Game {
         if self.back_to_back && clears == 4 {
             text += "Back to Back ";
         }
-        if self.board.t_spin != TSpin::None && self.back_to_back {
+        if self.board.t_spin != TSpin::None && clears > 0 && self.back_to_back {
             attacks += 1;
             text += "Back to Back ";
         }
