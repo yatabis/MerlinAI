@@ -16,8 +16,10 @@ pub struct Game {
     pub hold: Mino,
     pub next: VecDeque<Mino>,
     pub bag: [bool; 7],
+    pub attacks: i32,
     pub back_to_back: bool,
-    pub ren: usize
+    pub ren: usize,
+    pub effect: String,
 }
 
 impl Game {
@@ -27,8 +29,10 @@ impl Game {
             hold: Mino::None,
             next: VecDeque::new(),
             bag: [true; 7],
+            attacks: 0,
             back_to_back: false,
             ren: 0,
+            effect: String::new(),
         }
     }
 
@@ -42,22 +46,32 @@ impl Game {
 
     pub fn move_left(&mut self) {
         self.board.move_left();
+        self.attacks = 0;
+        self.effect = String::new();
     }
 
     pub fn move_right(&mut self) {
         self.board.move_right();
+        self.attacks = 0;
+        self.effect = String::new();
     }
 
     pub fn rotate_clockwise(&mut self) {
         self.board.rotate_clockwise();
+        self.attacks = 0;
+        self.effect = String::new();
     }
 
     pub fn rotate_counterclockwise(&mut self) {
         self.board.rotate_counterclockwise();
+        self.attacks = 0;
+        self.effect = String::new();
     }
 
     pub fn soft_drop(&mut self) {
         self.board.move_down();
+        self.attacks = 0;
+        self.effect = String::new();
     }
 
     pub fn hard_drop(&mut self) -> Bitboard {
@@ -66,8 +80,7 @@ impl Game {
         if clears == 0 {
             self.ren = 0;
         }
-        let attacks = self.calc_attacks(clears);
-        println!("attack: {attacks}");
+        self.attacks = self.calc_attacks(clears);
         if clears > 0 {
             self.back_to_back = clears == 4 || self.board.t_spin != TSpin::None;
         }
@@ -80,7 +93,7 @@ impl Game {
 
     fn calc_attacks(&mut self, clears: u32) -> i32 {
         if self.board.field[0] == 0 &&self.board.field[1] == 0 &&self.board.field[2] == 0 &&self.board.field[3] == 0 {
-            println!("Perfect Clear");
+            self.effect = "Perfect Clear".to_string();
             return PERFECT_CLEAR;
         }
         let mut attacks = if self.board.t_spin == TSpin::Normal {
@@ -98,29 +111,19 @@ impl Game {
                 _ => 0,
             }
         };
-        let mut text = if clears == 4 {
-            "Tetris ".to_string()
+        self.effect = if clears == 4 {
+            "Tetris".to_string()
         } else {
             match self.board.t_spin {
-                TSpin::Normal => "T-Spin ".to_string() + ["", "Single ", "Double ", "Triple "][clears as usize],
-                TSpin::Mini => "T-Spin mini ".to_string() + ["", "Single ", "Double ", "Triple "][clears as usize],
+                TSpin::Normal => "T-Spin ".to_string() + ["", "Single", "Double", "Triple"][clears as usize],
+                TSpin::Mini => "T-Spin ".to_string() + ["", "Single", "Double", "Triple"][clears as usize] + " mini",
                 TSpin::None => "".to_string(),
             }
         };
-        if self.back_to_back && clears == 4 {
-            text += "Back to Back ";
-        }
         if self.board.t_spin != TSpin::None && clears > 0 && self.back_to_back {
             attacks += 1;
-            text += "Back to Back ";
         }
         attacks += if self.ren < REN.len() { REN[self.ren] } else {REN[REN.len() - 1]};
-        if self.ren > 0 {
-            text += &format!("{}REN", self.ren);
-        }
-        if text != "" {
-            println!("{text}");
-        }
         attacks
     }
 
@@ -133,6 +136,8 @@ impl Game {
             self.hold = self.board.current.mino;
             self.board.spawn(hold_mino);
         }
+        self.attacks = 0;
+        self.effect = String::new();
     }
 
     pub fn game_over(&self, grounded: Bitboard) -> bool {

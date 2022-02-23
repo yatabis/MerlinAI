@@ -1,5 +1,5 @@
-use std::fs::File;
 use std::io::Write;
+use std::process::ChildStdin;
 use crate::board::{Bitboard, Mino};
 
 use crate::game::Game;
@@ -52,27 +52,29 @@ impl Viewer {
         }
     }
 
-    pub fn write(&mut self, game: &Game) {
+    pub fn write(&mut self, game: &Game, input: &mut ChildStdin) {
         let mut map = String::new();
         for i in (0..21).rev() {
-            let mut line = [0; 10];
             for j in 0..10 {
-                line[j] = self.current[i * 10 + j];
-                if line[j] == 0 { line[j] = self.ghost[i * 10 + j]; }
-                if line[j] == 0 { line[j] = self.field[i * 10 + j]; }
+                let mut cell = self.current[i * 10 + j];
+                if cell == 0 { cell = self.ghost[i * 10 + j]; }
+                if cell == 0 { cell = self.field[i * 10 + j]; }
+                map += &(cell.to_string() + ",");
             }
-            map += &(line.map(|cell| cell.to_string() ).join(",") + "\n");
         }
         map += &format!(
-            "{},{},{},{},{},{}",
+            "{},{},{},{},{},{},{},{},{},{}",
             game.hold as usize + 1,
             game.next[0] as usize + 1,
             game.next[1] as usize + 1,
             game.next[2] as usize + 1,
             game.next[3] as usize + 1,
             game.next[4] as usize + 1,
+            game.attacks,
+            game.back_to_back as usize,
+            game.ren,
+            game.effect,
         );
-        let mut f = File::create("map.csv").unwrap();
-        write!(f, "{}", map).unwrap();
+        write!(input, "{}\n", map).unwrap();
     }
 }

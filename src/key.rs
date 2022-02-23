@@ -9,23 +9,21 @@ pub enum  Key {
     Hold,
     Retry,
     Exit,
-    None,
     Unknown,
 }
 
 impl Key {
-    pub fn new(code: [libc::c_char; 1]) -> Key {
-        match code[0] {
-            115 => Key::Left,
-            102 => Key::Right,
-            108 => Key::Clockwise,
-            106 => Key::Counterclockwise,
-            100 => Key::SoftDrop,
-            32 => Key::HardDrop,
-            59 | 97 => Key::Hold,
-            114 => Key::Retry,
-            113 => Key::Exit,
-            0 => Key::None,
+    pub fn new(code: &str) -> Key {
+        match code {
+            "Left" => Key::Left,
+            "Right" => Key::Right,
+            "Clockwise" => Key::Clockwise,
+            "Counterclockwise" => Key::Counterclockwise,
+            "SoftDrop" => Key::SoftDrop,
+            "HardDrop" => Key::HardDrop,
+            "Hold" => Key::Hold,
+            "Retry" => Key::Retry,
+            "Exit" => Key::Exit,
             _ => Key::Unknown,
         }
     }
