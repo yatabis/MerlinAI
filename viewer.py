@@ -62,20 +62,20 @@ class Viewer:
         self.map = [[0] * WIDTH for _ in range(HEIGHT)]
         self.hold = 0
         self.next = [0] * 5
-        self.color_map = [
-            0x111111,  # empty
-            0x00eeee,  # I mino
-            0xeeee00,  # O mino
-            0x00ee00,  # S mino
-            0xee0000,  # Z mino
-            0x2222ee,  # J mino
-            0xee7700,  # L mino
-            0x7700ee,  # T mino
-            0x999999,  # block
-            0x555555,  # line
-            0xeeeeee,  # text
-        ]
-        pyxel.init(WINDOW_WIDTH, WINDOW_HEIGHT, caption="tetris viewer", scale=3, palette=self.color_map, fps=60)
+        pyxel.init(WINDOW_WIDTH, WINDOW_HEIGHT, title="tetris viewer", capture_scale=3, fps=60)
+        color_map = pyxel.colors.to_list()
+        color_map[0] = 0x111111  # empty
+        color_map[1] = 0x00eeee  # I mino
+        color_map[2] = 0xeeee00  # O mino
+        color_map[3] = 0x00ee00  # S mino
+        color_map[4] = 0xee0000  # Z mino
+        color_map[5] = 0x2222ee  # J mino
+        color_map[6] = 0xee7700  # L mino
+        color_map[7] = 0x7700ee  # T mino
+        color_map[8] = 0x999999  # block
+        color_map[9] = 0x555555  # line
+        color_map[10] = 0xeeeeee  # text
+        pyxel.colors.from_list(color_map)
         self.pieces = 0
         self.attacks = 0
         self.effect = ""
