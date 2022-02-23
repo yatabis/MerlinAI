@@ -163,9 +163,9 @@ class Viewer:
         if self.btb_display_counter:
             pyxel.text(2, 78, f" Back\n  to\n   Back", COLOR_TEXT)
         pyxel.text(2, 120, f"Pcs {self.pieces}", COLOR_TEXT)
-        pyxel.text(2, 130, f"PPS {self.pieces / time}", COLOR_TEXT)
+        pyxel.text(2, 130, f"PPS {self.pieces / time if time else 0}", COLOR_TEXT)
         pyxel.text(2, 140, f"Atk {self.attacks}", COLOR_TEXT)
-        pyxel.text(2, 150, f"APM {self.attacks / (time / 60)}", COLOR_TEXT)
+        pyxel.text(2, 150, f"APM {self.attacks / (time / 60) if time else 0}", COLOR_TEXT)
         pyxel.text(2, 160, f"APP {self.attacks / max(self.pieces, 1)}", COLOR_TEXT)
         pyxel.text(1, 175, f"{self.fps:>4}fps", COLOR_TEXT)
         draw_border(HOLD_X, HOLD_Y, HOLD_WIDTH, HOLD_HEIGHT, COLOR_LINE)
