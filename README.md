@@ -10,7 +10,7 @@ Rust と Python の環境があれば遊べます。
 ##### 1. リポジトリをクローン
 
 ```sh
-$ git clone git@github.com:yatabis/MerlinAI.git
+$ git clone https://github.com/yatabis/MerlinAI.git
 $ cd MerlinAI
 ```
 
@@ -24,6 +24,12 @@ $ python3 -m venv venv
 
 ```sh
 $ . venv/bin/activate
+```
+
+または
+
+```sh
+$ venv¥Scripts¥activate
 ```
 
 ##### 4. パッケージのインストール
