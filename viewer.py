@@ -1,6 +1,5 @@
 from datetime import datetime
 import pyxel
-import sys
 
 DISPLAY_INTERVAL = 5
 DISPLAY_LIFETIME = 100
@@ -57,8 +56,7 @@ WINDOW_HEIGHT = FIELD_Y + FIELD_HEIGHT + BOX_BORDER_WIDTH
 
 
 class Viewer:
-    def __init__(self, map_file):
-        self.map_file = map_file
+    def __init__(self):
         self.map = [[0] * WIDTH for _ in range(HEIGHT)]
         self.hold = 0
         self.next = [0] * 5
@@ -124,10 +122,10 @@ class Viewer:
         if pyxel.frame_count % DISPLAY_INTERVAL == 0:
             self.fps = int(1 / (datetime.now() - self.fps_timer).total_seconds())
         self.fps_timer = datetime.now()
-        if pyxel.btnp(KEY_LEFT, 10, 2):
+        if pyxel.btnp(KEY_LEFT, hold=10, repeat=2):
             print("Left", flush=True)
             self.read()
-        if pyxel.btnp(KEY_RIGHT, 10, 2):
+        if pyxel.btnp(KEY_RIGHT, hold=10, repeat=2):
             print("Right", flush=True)
             self.read()
         if pyxel.btnp(KEY_CLOCKWISE):
@@ -136,7 +134,7 @@ class Viewer:
         if pyxel.btnp(KEY_COUNTERCLOCKWISE):
             print("Counterclockwise", flush=True)
             self.read()
-        if pyxel.btnp(KEY_SOFT_DROP, 2, 2):
+        if pyxel.btnp(KEY_SOFT_DROP, hold=2, repeat=2):
             print("SoftDrop", flush=True)
             self.read()
         if pyxel.btnp(KEY_HARD_DROP):
@@ -290,5 +288,5 @@ def draw_mino(left, top, width, height, size, mino):
 
 
 if __name__ == '__main__':
-    viewer = Viewer(sys.argv[1])
+    viewer = Viewer()
     viewer.run()

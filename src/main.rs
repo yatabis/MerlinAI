@@ -13,9 +13,8 @@ fn main() {
 }
 
 fn test() {
-    let mut test = Command::new("python3")
+    let mut test = Command::new("python")
         .arg("viewer.py")
-        .arg("map.csv")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
