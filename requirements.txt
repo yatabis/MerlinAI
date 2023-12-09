@@ -1,5 +1,5 @@
 altgraph==0.17.2
 macholib==1.15.2
-pyinstaller==4.9
+pyinstaller==5.13.1
 pyinstaller-hooks-contrib==2022.2
 pyxel==1.6.9
